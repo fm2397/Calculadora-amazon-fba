@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Calculadora Amazon FBA España</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#17202a;background:#f5f7fa}
+*{box-sizing:border-box} body{margin:0}.wrap{max-width:900px;margin:auto;padding:22px}
+h1{margin:0 0 6px;font-size:28px}.sub{color:#667085;margin-bottom:22px}
+.card{background:white;border:1px solid #e4e7ec;border-radius:16px;padding:20px;margin:14px 0;box-shadow:0 2px 8px #00000008}
+h2{font-size:18px;margin:0 0 15px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+label{font-size:13px;font-weight:650;display:block;margin-bottom:6px}
+input,select{width:100%;padding:11px 12px;border:1px solid #d0d5dd;border-radius:10px;font-size:15px;background:#fff}
+.small{font-size:12px;color:#667085;margin-top:5px}.full{grid-column:1/-1}
+.mode{display:flex;gap:8px;margin:0 0 12px}.mode button{flex:1;border:1px solid #d0d5dd;background:white;padding:9px;border-radius:9px;cursor:pointer}.mode .active{background:#17202a;color:white}
+.results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.result{padding:15px;border-radius:12px;background:#f8fafc}.result span{display:block;color:#667085;font-size:12px}.result strong{font-size:22px}
+.hero{background:#eef7ee;border:1px solid #cce6cc}.hero strong{font-size:28px}
+button.calc{width:100%;padding:13px;border:0;border-radius:11px;background:#111827;color:white;font-size:16px;font-weight:700;cursor:pointer}
+.note{font-size:12px;color:#667085;line-height:1.45}.warn{background:#fff8e6;border:1px solid #f2d28b;padding:12px;border-radius:10px;font-size:12px}
+@media(max-width:650px){.grid,.results{grid-template-columns:1fr}.full{grid-column:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Calculadora Amazon FBA España</h1>
+<div class="sub">Rentabilidad por unidad y por periodo de ventas.</div>
+
+<div class="card">
+<h2>1. Producto</h2>
+<div class="grid">
+<div><label>Precio de venta (€)</label><input id="sale" type="number" step="0.01" value="24.99"></div>
+<div><label>Categoría Amazon</label>
+<select id="cat"></select>
+<div class="small" id="rateText"></div></div>
+<div><label>Compra Alibaba / unidad (€)</label><input id="buy" type="number" step="0.01" value="4.20"></div>
+<div><label>Envío China → España / unidad (€)</label><input id="ship" type="number" step="0.01" value="1.10"></div>
+<div><label>Otros costes / unidad (€)</label><input id="other" type="number" step="0.01" value="0"></div>
+</div>
+</div>
+
+<div class="card">
+<h2>2. Logística FBA</h2>
+<div class="mode">
+<button id="autoBtn" class="active" onclick="setMode('auto')">Estimar por medidas/peso</button>
+<button id="manualBtn" onclick="setMode('manual')">Introducir tarifa FBA</button>
+</div>
+<div id="autoFields" class="grid">
+<div><label>Peso (kg)</label><input id="weight" type="number" step="0.001" value="0.50"></div>
+<div><label>Largo (cm)</label><input id="len" type="number" step="0.1" value="25"></div>
+<div><label>Ancho (cm)</label><input id="wid" type="number" step="0.1" value="15"></div>
+<div><label>Alto (cm)</label><input id="hei" type="number" step="0.1" value="8"></div>
+</div>
+<div id="manualFields" style="display:none">
+<label>Tarifa logística FBA / unidad (€)</label><input id="fbaManual" type="number" step="0.01" value="4.50">
+</div>
+<div class="small" id="fbaText"></div>
+</div>
+
+<div class="card">
+<h2>3. Ventas</h2>
+<div class="grid">
+<div><label>Unidades vendidas</label><input id="units" type="number" step="1" value="150"></div>
+<div><label>Periodo (días)</label><input id="days" type="number" step="1" value="30"></div>
+</div>
+</div>
+
+<button class="calc" onclick="calculate()">Calcular rentabilidad</button>
+
+<div class="card">
+<h2>Resultado por unidad</h2>
+<div class="results">
+<div class="result"><span>Comisión de referencia</span><strong id="refFee">—</strong></div>
+<div class="result"><span>Logística FBA</span><strong id="fbaFee">—</strong></div>
+<div class="result"><span>Coste total / unidad</span><strong id="totalCost">—</strong></div>
+<div class="result hero"><span>Beneficio limpio / unidad</span><strong id="profit">—</strong></div>
+<div class="result"><span>Margen</span><strong id="margin">—</strong></div>
+<div class="result"><span>ROI</span><strong id="roi">—</strong></div>
+</div>
+</div>
+
+<div class="card">
+<h2>Resultado del periodo</h2>
+<div class="results">
+<div class="result"><span>Facturación</span><strong id="revenue">—</strong></div>
+<div class="result hero"><span>Pago Amazon estimado</span><strong id="amazonPay">—</strong></div>
+<div class="result"><span>Costes incluidos</span><strong id="periodCosts">—</strong></div>
+<div class="result hero"><span>Beneficio limpio</span><strong id="periodProfit">—</strong></div>
+<div class="result"><span>Unidades / día</span><strong id="perDay">—</strong></div>
+<div class="result"><span>Beneficio / día</span><strong id="profitDay">—</strong></div>
+</div>
+</div>
+
+<div class="warn">Estimación: las tarifas de referencia de Amazon pueden depender de categoría, precio y tarifa mínima, y las tarifas FBA dependen del tamaño/peso y programa aplicable. Amazon aplica además un recargo de combustible y logística del 1,5% a las tarifas FBA desde el 17/04/2026. Esta V1 usa una estimación simplificada; conviene contrastar la tarifa exacta del ASIN con Amazon.</div>
+<p class="note">Las categorías y porcentajes iniciales son orientativos y deben revisarse contra la tabla oficial de Amazon antes de usar la app para decisiones económicas.</p>
+</div>
+
+<script>
+const cats = [
+["Belleza, salud y cuidado personal",0.08],["Cocina",0.15],["Hogar",0.08],
+["Ropa y accesorios ≤ 15 €",0.05],["Ropa y accesorios 15–20 €",0.10],
+["Ropa y accesorios > 20 €",0.15],["Deportes y aire libre",0.15],
+["Automoción",0.15],["Electrónica",0.07],["Accesorios para dispositivos Amazon",0.45],
+["Juguetes y juegos",0.15],["Oficina",0.15],["Mascotas",0.05],
+["Supermercado y gourmet",0.05],["Otra categoría",0.15]
+];
+let mode="auto";
+const cat=document.getElementById("cat");
+cats.forEach((c,i)=>{let o=document.createElement("option");o.value=i;o.textContent=c[0];cat.appendChild(o)});
+cat.value=2;
+function euro(n){return new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'}).format(n)}
+function pct(n){return new Intl.NumberFormat('es-ES',{style:'percent',maximumFractionDigits:2}).format(n)}
+function setMode(m){
+ mode=m;
+ document.getElementById("autoFields").style.display=m==="auto"?"grid":"none";
+ document.getElementById("manualFields").style.display=m==="manual"?"block":"none";
+ document.getElementById("autoBtn").classList.toggle("active",m==="auto");
+ document.getElementById("manualBtn").classList.toggle("active",m==="manual");
+ calculate();
+}
+function getRate(){
+ let rate=cats[+cat.value][1];
+ // Apply the special clothing thresholds.
+ if(+cat.value===3) rate=0.05;
+ if(+cat.value===4) rate=0.10;
+ if(+cat.value===5) rate=0.15;
+ return rate;
+}
+function estimateFBA(){
+ const w=+document.getElementById("weight").value||0;
+ const l=+document.getElementById("len").value||0, a=+document.getElementById("wid").value||0, h=+document.getElementById("hei").value||0;
+ const sale=+document.getElementById("sale").value||0;
+ // Simple estimate only. Not presented as Amazon's exact fee table.
+ const vol=l*a*h/5000;
+ let fee=3.25;
+ if(w>0.4) fee+=Math.min(3.2,w*2.1);
+ if(Math.max(l,a,h)>35 || vol>3) fee+=1.25;
+ if(sale<=20 && w<=0.4 && l<=35 && a<=25 && h<=12) fee=Math.max(2.65,fee-1.10);
+ fee*=1.015; // 2026 surcharge
+ return fee;
+}
+function calculate(){
+ const sale=+document.getElementById("sale").value||0;
+ const buy=+document.getElementById("buy").value||0, ship=+document.getElementById("ship").value||0, other=+document.getElementById("other").value||0;
+ const rate=getRate(), ref=sale*rate;
+ let fba=mode==="manual"?(+document.getElementById("fbaManual").value||0):estimateFBA();
+ const amazon=sale-ref-fba;
+ const total=buy+ship+other+ref+fba;
+ const profit=sale-total;
+ const margin=sale?profit/sale:0;
+ const invested=buy+ship+other;
+ const roi=invested?profit/invested:0;
+ const units=Math.max(0,+document.getElementById("units").value||0), days=Math.max(0,+document.getElementById("days").value||0);
+ const revenue=sale*units, amazonPeriod=amazon*units, costs=(ref+fba+buy+ship+other)*units, pPeriod=profit*units;
+ document.getElementById("rateText").textContent=`Tarifa aplicada: ${(rate*100).toFixed(1)}%`;
+ document.getElementById("refFee").textContent=euro(ref);
+ document.getElementById("fbaFee").textContent=euro(fba);
+ document.getElementById("totalCost").textContent=euro(total);
+ document.getElementById("profit").textContent=euro(profit);
+ document.getElementById("margin").textContent=pct(margin);
+ document.getElementById("roi").textContent=pct(roi);
+ document.getElementById("revenue").textContent=euro(revenue);
+ document.getElementById("amazonPay").textContent=euro(amazonPeriod);
+ document.getElementById("periodCosts").textContent=euro(costs);
+ document.getElementById("periodProfit").textContent=euro(pPeriod);
+ document.getElementById("perDay").textContent=days?(units/days).toFixed(2):"—";
+ document.getElementById("profitDay").textContent=days?euro(pPeriod/days):"—";
+ document.getElementById("fbaText").textContent=mode==="auto"?"Tarifa FBA estimada: "+euro(fba):"Tarifa FBA introducida manualmente.";
+}
+["sale","buy","ship","other","weight","len","wid","hei","fbaManual","units","days","cat"].forEach(id=>document.getElementById(id).addEventListener("input",calculate));
+calculate();
+</script>
+</body>
+</html>
